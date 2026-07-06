@@ -62,3 +62,29 @@ def test_parse_text_warns_when_no_line_items_are_found():
     assert result.status == "warning"
     assert result.po_number == "1234567890"
     assert result.warnings == ["No material line items found"]
+
+
+def test_parse_pdf_bytes_fails_cleanly_for_non_pdf_bytes():
+    result = parse_pdf_bytes(b"not a pdf at all", "broken.bin")
+
+    assert result.status == "failed"
+    assert result.error
+    assert result.line_items == []
+
+
+def test_parse_text_warns_when_an_item_like_row_cannot_be_parsed():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 1234567890 / 01/02/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 W10165202 EA 78,000 0 0 0. 0.00 10/03/2026",
+            "2 W99999999 EA 1,000 0 0 0. 0.00",
+        ]
+    )
+
+    result = _parse_text(text, "partial.pdf")
+
+    assert result.status == "warning"
+    assert len(result.line_items) == 1
+    assert result.warnings == ["1 material line item row could not be parsed"]

@@ -42,7 +42,15 @@ SHIP_TO_STOP_MARKERS = ("Bill To", "Payment Terms", "Terms of delivery")
 
 
 def parse_pdf_bytes(content: bytes, source_file: str) -> ParseResult:
-    text = _extract_text_from_pdf(content)
+    try:
+        text = _extract_text_from_pdf(content)
+    except Exception as exc:
+        return ParseResult(
+            source_file=source_file,
+            status="failed",
+            error=f"Unable to extract PDF text: {exc}",
+        )
+
     if not text.strip():
         return ParseResult(
             source_file=source_file,
@@ -72,13 +80,14 @@ def _parse_text(text: str, source_file: str) -> ParseResult:
 
     lines = text.splitlines()
     ship_to = _extract_ship_to(lines)
-    line_items = _extract_line_items(lines)
+    line_items, line_item_warnings = _extract_line_items(lines)
     warnings: list[str] = []
 
     if not ship_to:
         warnings.append("Ship To not found")
     if not line_items:
         warnings.append("No material line items found")
+    warnings.extend(line_item_warnings)
 
     status = "parsed" if not warnings else "warning"
     return ParseResult(
@@ -115,9 +124,16 @@ def _extract_ship_to(lines: list[str]) -> str:
     return "\n".join(_dedupe_preserve_order(captured)).strip()
 
 
-def _extract_line_items(lines: list[str]) -> list[LineItem]:
+def _extract_line_items(lines: list[str]) -> tuple[list[LineItem], list[str]]:
     items: list[LineItem] = []
+    warnings: list[str] = []
+    item_like_rows = 0
+
     for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped and re.match(r"^\d+\s+[A-Z0-9][A-Z0-9\-]*\s+[A-Z]{1,5}\b", stripped):
+            item_like_rows += 1
+
         match = ITEM_PATTERN.match(line)
         if not match:
             continue
@@ -138,7 +154,11 @@ def _extract_line_items(lines: list[str]) -> list[LineItem]:
         if not description:
             item.warnings.append("Description not found")
         items.append(item)
-    return items
+
+    if item_like_rows > len(items):
+        warnings.append(f"{item_like_rows - len(items)} material line item row could not be parsed")
+
+    return items, warnings
 
 
 def _extract_description_after_row(lines: list[str], start_index: int) -> str:
