@@ -71,7 +71,8 @@ def _append_item_rows(sheet: Worksheet, result: ParseResult) -> None:
     if not result.line_items:
         return
 
-    result_warning_text = _join_messages(result.warnings)
+    general_result_warnings = [warning for warning in result.warnings if not _is_item_specific_warning(warning)]
+    result_warning_text = _join_messages(general_result_warnings)
     for item in result.line_items:
         status_parts = [result.status, result_warning_text, _join_messages(item.warnings)]
         sheet.append(
@@ -96,10 +97,9 @@ def _append_item_rows(sheet: Worksheet, result: ParseResult) -> None:
 
 
 def _append_summary_row(sheet: Worksheet, result: ParseResult) -> None:
-    warning_count = len(result.warnings) + sum(len(item.warnings) for item in result.line_items)
-    all_warnings = list(result.warnings)
-    for item in result.line_items:
-        all_warnings.extend(f"Item {item.item}: {warning}" for warning in item.warnings)
+    warnings = _dedupe_messages(
+        [*result.warnings, *[f"Item {item.item}: {warning}" for item in result.line_items for warning in item.warnings]]
+    )
 
     sheet.append(
         [
@@ -108,8 +108,8 @@ def _append_summary_row(sheet: Worksheet, result: ParseResult) -> None:
             result.po_date,
             result.status,
             len(result.line_items),
-            warning_count,
-            _join_messages(all_warnings),
+            len(warnings),
+            _join_messages(warnings),
             result.error or "",
         ]
     )
@@ -128,3 +128,15 @@ def _format_sheet(sheet: Worksheet) -> None:
 
 def _join_messages(messages: list[str]) -> str:
     return "; ".join(message for message in messages if message)
+
+
+def _dedupe_messages(messages: list[str]) -> list[str]:
+    deduped: list[str] = []
+    for message in messages:
+        if message and message not in deduped:
+            deduped.append(message)
+    return deduped
+
+
+def _is_item_specific_warning(warning: str) -> bool:
+    return warning.startswith("Item ") and ": " in warning

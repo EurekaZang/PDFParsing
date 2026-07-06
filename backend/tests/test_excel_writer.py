@@ -30,6 +30,44 @@ def _sample_result() -> ParseResult:
     )
 
 
+def _sample_result_with_item_warning() -> ParseResult:
+    return ParseResult(
+        source_file="4515457833 WHIRLPOOL.PDF",
+        po_number="4515457833",
+        po_date="02/17/2026",
+        ship_to="01RI\nJabil Circuit India Pvt Ltd (EOU Unit)",
+        status="parsed",
+        warnings=["Item 1: Description not found"],
+        line_items=[
+            LineItem(
+                item="1",
+                material="W10165202",
+                description="TRANSISTOR PNP 100MA 45V HFE150 SOT23",
+                uom="EA",
+                total_qty="78,000",
+                qty_recd="0",
+                qty_retd="0",
+                unit_price="0.",
+                item_value="0.00",
+                due_date="10/03/2026",
+                warnings=["Description not found"],
+            ),
+            LineItem(
+                item="2",
+                material="W10165203",
+                description="TRANSISTOR PNP 100MA 45V HFE150 SOT23",
+                uom="EA",
+                total_qty="12,000",
+                qty_recd="0",
+                qty_retd="0",
+                unit_price="0.",
+                item_value="0.00",
+                due_date="10/03/2026",
+            ),
+        ],
+    )
+
+
 def test_build_workbook_creates_fixed_sheets_and_headers():
     workbook_bytes = build_workbook([_sample_result()])
 
@@ -64,3 +102,16 @@ def test_build_workbook_writes_summary_for_failed_file():
     assert row[4] == 0
     assert row[5] == 0
     assert row[7] == "PO number/date not found"
+
+
+def test_build_workbook_keeps_item_warnings_on_correct_rows_and_dedupes_summary():
+    workbook = load_workbook(BytesIO(build_workbook([_sample_result_with_item_warning()])))
+
+    item_one = [cell.value for cell in workbook["PO Items"][2]]
+    item_two = [cell.value for cell in workbook["PO Items"][3]]
+    summary = [cell.value for cell in workbook["Parse Summary"][2]]
+
+    assert item_one[14] == "parsed; Description not found"
+    assert item_two[14] == "parsed"
+    assert summary[5] == 1
+    assert summary[6] == "Item 1: Description not found"
