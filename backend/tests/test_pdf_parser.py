@@ -11,6 +11,7 @@ def test_parse_first_sample_extracts_po_header_ship_to_and_line_item():
     result = parse_pdf_bytes(SAMPLE_4515457833.read_bytes(), SAMPLE_4515457833.name)
 
     assert result.status == "parsed"
+    assert result.warnings == []
     assert result.error is None
     assert result.po_number == "4515457833"
     assert result.po_date == "02/17/2026"
@@ -35,6 +36,7 @@ def test_parse_second_sample_extracts_po_header_and_line_item():
     result = parse_pdf_bytes(SAMPLE_4515662616.read_bytes(), SAMPLE_4515662616.name)
 
     assert result.status == "parsed"
+    assert result.warnings == []
     assert result.po_number == "4515662616"
     assert result.po_date == "03/23/2026"
     assert len(result.line_items) == 1
@@ -84,6 +86,44 @@ def test_parse_text_warns_when_an_item_like_row_cannot_be_parsed():
     )
 
     result = _parse_text(text, "partial.pdf")
+
+    assert result.status == "warning"
+    assert len(result.line_items) == 1
+    assert result.warnings == ["1 material line item row could not be parsed"]
+
+
+def test_parse_text_promotes_line_item_warning_to_parse_result_warning():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 1234567890 / 01/02/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 W10165202 EA 78,000 0 0 0. 0.00 10/03/2026",
+            "Manufacturer: Example",
+        ]
+    )
+
+    result = _parse_text(text, "missing-description.pdf")
+
+    assert result.status == "warning"
+    assert len(result.line_items) == 1
+    assert result.line_items[0].warnings == ["Description not found"]
+    assert result.warnings == ["Item 1: Description not found"]
+
+
+def test_parse_text_warns_for_item_like_row_missing_uom_but_not_quantity_row():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 1234567890 / 01/02/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 W10165202 EA 78,000 0 0 0. 0.00 10/03/2026",
+            "2 W99999999 1,000 0 0 0. 0.00 10/03/2026",
+            "2 78,000 0 0 vendor confirmation quantity row",
+        ]
+    )
+
+    result = _parse_text(text, "missing-uom.pdf")
 
     assert result.status == "warning"
     assert len(result.line_items) == 1

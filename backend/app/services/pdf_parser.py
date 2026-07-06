@@ -22,6 +22,7 @@ ITEM_PATTERN = re.compile(
     r"(?P<item_value>[\d,.]+)\s+"
     r"(?P<due_date>\d{2}/\d{2}/\d{4})\s*$"
 )
+ITEM_LIKE_PATTERN = re.compile(r"^\s*\d+\s+[A-Z][A-Z0-9\-]{3,}\b")
 
 DESCRIPTION_STOP_PREFIXES = (
     "Manufacturer",
@@ -87,6 +88,8 @@ def _parse_text(text: str, source_file: str) -> ParseResult:
         warnings.append("Ship To not found")
     if not line_items:
         warnings.append("No material line items found")
+    for item in line_items:
+        warnings.extend(f"Item {item.item}: {warning}" for warning in item.warnings)
     warnings.extend(line_item_warnings)
 
     status = "parsed" if not warnings else "warning"
@@ -130,8 +133,7 @@ def _extract_line_items(lines: list[str]) -> tuple[list[LineItem], list[str]]:
     item_like_rows = 0
 
     for index, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped and re.match(r"^\d+\s+[A-Z0-9][A-Z0-9\-]*\s+[A-Z]{1,5}\b", stripped):
+        if ITEM_LIKE_PATTERN.match(line):
             item_like_rows += 1
 
         match = ITEM_PATTERN.match(line)
