@@ -1,0 +1,174 @@
+:root {
+  color: #172033;
+  background: #f4f7fb;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(200, 210, 227, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 210, 227, 0.18) 1px, transparent 1px),
+    radial-gradient(circle at top left, rgba(31, 94, 255, 0.12), transparent 34rem),
+    #f4f7fb;
+  background-size: 28px 28px, 28px 28px, auto, auto;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  background: #173f8a;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: #12336f;
+  transform: translateY(-1px);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(31, 94, 255, 0.34);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button.secondary {
+  background: #e6ecf7;
+  color: #172033;
+}
+
+button.secondary:hover:not(:disabled) {
+  background: #d8e2f0;
+}
+
+.auth-card,
+.shell {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 2rem;
+}
+
+.auth-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.99)),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(200, 210, 227, 0.22) 31px 32px);
+  border: 1px solid rgba(151, 164, 190, 0.28);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(31, 50, 90, 0.12);
+  margin-top: 12vh;
+  max-width: 420px;
+}
+
+.auth-card h1,
+.topbar h1 {
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+
+.auth-card p,
+.topbar p,
+.panel p {
+  color: #42526e;
+  line-height: 1.6;
+}
+
+.auth-card form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+label {
+  color: #42526e;
+  display: grid;
+  font-weight: 700;
+  gap: 0.4rem;
+}
+
+input {
+  border: 1px solid #c8d2e3;
+  border-radius: 10px;
+  color: #172033;
+  padding: 0.75rem;
+}
+
+input:hover {
+  border-color: #97a4be;
+}
+
+.error-banner {
+  background: #fff1f0;
+  border: 1px solid #ffccc7;
+  border-radius: 10px;
+  color: #a8071a;
+  padding: 0.75rem;
+}
+
+.topbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(151, 164, 190, 0.24);
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94)),
+    repeating-linear-gradient(90deg, transparent 0 95px, rgba(200, 210, 227, 0.2) 95px 96px);
+  border: 1px solid rgba(151, 164, 190, 0.22);
+  border-radius: 18px;
+  box-shadow: 0 16px 48px rgba(31, 50, 90, 0.1);
+  margin-top: 1.5rem;
+  min-height: 14rem;
+  padding: 1.5rem;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .auth-card,
+  .shell {
+    padding: 1rem;
+  }
+
+  .auth-card {
+    margin-top: 2rem;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
