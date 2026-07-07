@@ -65,41 +65,71 @@ export function UploadPage({ token }: UploadPageProps) {
 
   return (
     <div className="workspace">
-      <section className="panel upload-panel">
+      <section className="hero-panel">
         <div>
-          <h2>Upload PDFs</h2>
-          <p>Select one or more JABIL purchase-order PDFs. Parsed rows will appear below.</p>
+          <p className="eyebrow">One clean workbook from every PO</p>
+          <h2>Upload PDFs. Review the rows. Export Excel.</h2>
+          <p>
+            Built for JABIL purchase orders: batch upload, parse status, warnings, and material lines in one focused workspace.
+          </p>
         </div>
-        <input type="file" accept="application/pdf,.pdf" multiple onChange={handleFileChange} />
-        <div className="actions">
-          <button type="button" disabled={!files.length || isParsing} onClick={handleParse}>
-            {isParsing ? 'Parsing…' : `Parse ${files.length || ''} PDF${files.length === 1 ? '' : 's'}`}
-          </button>
-          <button className="secondary" type="button" disabled={!results.length || isExporting} onClick={handleExport}>
-            {isExporting ? 'Exporting…' : 'Download Excel'}
-          </button>
+      </section>
+
+      <section className="panel upload-panel" data-tour="upload">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">Step 1</p>
+            <h2>Choose purchase-order PDFs</h2>
+          </div>
+          <span className="file-count">{files.length} selected</span>
         </div>
+
+        <label className="drop-zone">
+          <input type="file" accept="application/pdf,.pdf" multiple onChange={handleFileChange} />
+          <span className="drop-icon">⌁</span>
+          <strong>{files.length ? 'Add or replace PDF files' : 'Select PDF files'}</strong>
+          <span>Batch upload supported. Parsed rows will appear in the preview below.</span>
+        </label>
+
         {files.length > 0 && (
-          <ul className="file-list">
+          <ul className="file-list" aria-label="Selected files" data-tour="file-list">
             {files.map((file) => (
-              <li key={`${file.name}-${file.size}`}>{file.name}</li>
+              <li key={`${file.name}-${file.size}`}>
+                <span>{file.name}</span>
+                <small>{(file.size / 1024 / 1024).toFixed(2)} MB</small>
+              </li>
             ))}
           </ul>
         )}
+
+        <div className="actions">
+          <button type="button" disabled={!files.length || isParsing} onClick={handleParse} data-tour="parse">
+            {isParsing ? 'Parsing…' : `Parse ${files.length || ''} PDF${files.length === 1 ? '' : 's'}`}
+          </button>
+          <button className="secondary" type="button" disabled={!results.length || isExporting} onClick={handleExport} data-tour="export">
+            {isExporting ? 'Exporting…' : 'Download Excel'}
+          </button>
+        </div>
         {error && <div className="error-banner">{error}</div>}
       </section>
 
       {results.length > 0 && (
-        <section className="summary-grid">
-          <div><strong>{summary.parsed}</strong><span>Parsed</span></div>
-          <div><strong>{summary.warning}</strong><span>Warnings</span></div>
-          <div><strong>{summary.failed}</strong><span>Failed</span></div>
-          <div><strong>{summary.lineItems}</strong><span>Line Items</span></div>
+        <section className="summary-grid" aria-label="Parse summary">
+          <div><span>Parsed</span><strong>{summary.parsed}</strong></div>
+          <div><span>Warnings</span><strong>{summary.warning}</strong></div>
+          <div><span>Failed</span><strong>{summary.failed}</strong></div>
+          <div><span>Line items</span><strong>{summary.lineItems}</strong></div>
         </section>
       )}
 
-      <section className="panel">
-        <h2>Preview</h2>
+      <section className="panel preview-panel" data-tour="preview">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">Step 2</p>
+            <h2>Preview extracted rows</h2>
+          </div>
+          {results.length > 0 && <span className="file-count">{results.length} files parsed</span>}
+        </div>
         <ResultTable results={results} />
       </section>
     </div>

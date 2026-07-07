@@ -30,28 +30,41 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   }
 
   return (
-    <main className="auth-card">
-      <h1>PDF PO Extractor</h1>
-      <p>Sign in to upload purchase-order PDFs and export Excel files.</p>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Username
-          <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-          />
-        </label>
-        {error && <div className="error-banner">{error}</div>}
-        <button type="submit" disabled={isSubmitting || !username || !password}>
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
+    <main className="auth-page">
+      <section className="auth-hero" aria-label="PDF PO Extractor sign in">
+        <div className="auth-copy">
+          <span className="brand-mark large">PO</span>
+          <p className="eyebrow">JABIL purchase order extraction</p>
+          <h1>Turn PO PDFs into clean Excel rows.</h1>
+          <p>
+            Upload purchase-order PDFs, review every material line, and export the fixed workbook your team expects.
+          </p>
+        </div>
+
+        <form className="auth-card" onSubmit={handleSubmit}>
+          <div>
+            <p className="eyebrow">Secure workspace</p>
+            <h2>Sign in</h2>
+          </div>
+          <label>
+            Username
+            <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+            />
+          </label>
+          {error && <div className="error-banner">{error}</div>}
+          <button type="submit" disabled={isSubmitting || !username || !password}>
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }

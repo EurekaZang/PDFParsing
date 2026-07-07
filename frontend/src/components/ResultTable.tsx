@@ -10,7 +10,12 @@ export function ResultTable({ results }: ResultTableProps) {
   );
 
   if (!results.length) {
-    return <p className="empty-state">No parsed files yet.</p>;
+    return (
+      <div className="empty-state">
+        <strong>No parsed files yet.</strong>
+        <span>Select PDFs above, then parse them to preview material lines here.</span>
+      </div>
+    );
   }
 
   return (
@@ -18,22 +23,22 @@ export function ResultTable({ results }: ResultTableProps) {
       <table>
         <thead>
           <tr>
-            <th>Source File</th>
-            <th>PO Number</th>
-            <th>PO Date</th>
-            <th>Ship To</th>
+            <th>Source file</th>
+            <th>PO number</th>
+            <th>PO date</th>
+            <th>Ship to</th>
             <th>Item</th>
             <th>Material</th>
             <th>Description</th>
-            <th>Manufacturer Part Number</th>
+            <th>Manufacturer part number</th>
             <th>U/M</th>
-            <th>Total Qty</th>
-            <th>Qty Recd</th>
-            <th>Qty Retd</th>
-            <th>Unit Price</th>
-            <th>Item Value</th>
-            <th>Due Date</th>
-            <th>Status / Warnings</th>
+            <th>Total qty</th>
+            <th>Qty recd</th>
+            <th>Qty retd</th>
+            <th>Unit price</th>
+            <th>Item value</th>
+            <th>Due date</th>
+            <th>Status / warnings</th>
           </tr>
         </thead>
         <tbody>
@@ -54,12 +59,20 @@ export function ResultTable({ results }: ResultTableProps) {
               <td>{item.unit_price}</td>
               <td>{item.item_value}</td>
               <td>{item.due_date}</td>
-              <td>{[result.status, ...result.warnings, ...item.warnings].filter(Boolean).join('; ')}</td>
+              <td>
+                <span className={`status-pill ${result.status}`}>{result.status}</span>
+                {[...result.warnings, ...item.warnings].filter(Boolean).join('; ')}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-      {!rows.length && <p className="empty-state">Files parsed, but no material rows were found.</p>}
+      {!rows.length && (
+        <div className="empty-state inline">
+          <strong>Files parsed, but no material rows were found.</strong>
+          <span>Check the source PDFs or warnings before exporting.</span>
+        </div>
+      )}
     </div>
   );
 }
