@@ -19,6 +19,7 @@ class LineItem(BaseModel):
     item: str = ""
     material: str = ""
     description: str = ""
+    manufacturer_part_number: str = ""
     uom: str = ""
     total_qty: str = ""
     qty_recd: str = ""

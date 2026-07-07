@@ -25,6 +25,7 @@ export function ResultTable({ results }: ResultTableProps) {
             <th>Item</th>
             <th>Material</th>
             <th>Description</th>
+            <th>Manufacturer Part Number</th>
             <th>U/M</th>
             <th>Total Qty</th>
             <th>Qty Recd</th>
@@ -45,6 +46,7 @@ export function ResultTable({ results }: ResultTableProps) {
               <td>{item.item}</td>
               <td>{item.material}</td>
               <td>{item.description}</td>
+              <td>{item.manufacturer_part_number}</td>
               <td>{item.uom}</td>
               <td>{item.total_qty}</td>
               <td>{item.qty_recd}</td>

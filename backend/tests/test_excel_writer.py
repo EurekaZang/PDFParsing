@@ -18,6 +18,7 @@ def _sample_result() -> ParseResult:
                 item="1",
                 material="W10165202",
                 description="TRANSISTOR PNP 100MA 45V HFE150 SOT23",
+                manufacturer_part_number="LBC857BLT1G",
                 uom="EA",
                 total_qty="78,000",
                 qty_recd="0",
@@ -43,6 +44,7 @@ def _sample_result_with_item_warning() -> ParseResult:
                 item="1",
                 material="W10165202",
                 description="TRANSISTOR PNP 100MA 45V HFE150 SOT23",
+                manufacturer_part_number="LBC857BLT1G",
                 uom="EA",
                 total_qty="78,000",
                 qty_recd="0",
@@ -74,7 +76,9 @@ def test_build_workbook_creates_fixed_sheets_and_headers():
     workbook = load_workbook(BytesIO(workbook_bytes))
 
     assert workbook.sheetnames == ["PO Items", "Parse Summary"]
-    assert [cell.value for cell in workbook["PO Items"][1]] == PO_ITEMS_HEADERS
+    po_items_headers = [cell.value for cell in workbook["PO Items"][1]]
+    assert po_items_headers == PO_ITEMS_HEADERS
+    assert po_items_headers[7] == "Manufacturer Part Number"
     assert [cell.value for cell in workbook["Parse Summary"][1]] == SUMMARY_HEADERS
 
 
@@ -87,8 +91,9 @@ def test_build_workbook_writes_one_row_per_line_item():
     assert row[2] == "02/17/2026"
     assert row[5] == "W10165202"
     assert row[6] == "TRANSISTOR PNP 100MA 45V HFE150 SOT23"
-    assert row[13] == "10/03/2026"
-    assert row[14] == "parsed"
+    assert row[7] == "LBC857BLT1G"
+    assert row[14] == "10/03/2026"
+    assert row[15] == "parsed"
 
 
 def test_build_workbook_writes_summary_for_failed_file():
@@ -111,7 +116,7 @@ def test_build_workbook_keeps_item_warnings_on_correct_rows_and_dedupes_summary(
     item_two = [cell.value for cell in workbook["PO Items"][3]]
     summary = [cell.value for cell in workbook["Parse Summary"][2]]
 
-    assert item_one[14] == "parsed; Description not found"
-    assert item_two[14] == "parsed"
+    assert item_one[15] == "parsed; Description not found"
+    assert item_two[15] == "parsed"
     assert summary[5] == 1
     assert summary[6] == "Item 1: Description not found"

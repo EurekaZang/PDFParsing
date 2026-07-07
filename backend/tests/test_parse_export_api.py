@@ -47,6 +47,7 @@ def test_parse_endpoint_extracts_uploaded_pdf():
     assert result["source_file"] == SAMPLE.name
     assert result["po_number"] == "4515457833"
     assert result["line_items"][0]["material"] == "W10165202"
+    assert result["line_items"][0]["manufacturer_part_number"] == "LBC857BLT1G"
 
 
 def test_parse_endpoint_rejects_non_pdf_upload():
@@ -81,6 +82,7 @@ def test_export_endpoint_returns_excel_file():
                         "item": "1",
                         "material": "W10165202",
                         "description": "TRANSISTOR PNP 100MA 45V HFE150 SOT23",
+                        "manufacturer_part_number": "LBC857BLT1G",
                         "uom": "EA",
                         "total_qty": "78,000",
                         "qty_recd": "0",
@@ -107,3 +109,5 @@ def test_export_endpoint_returns_excel_file():
     workbook_path.write_bytes(response.content)
     workbook = load_workbook(workbook_path)
     assert workbook.sheetnames == ["PO Items", "Parse Summary"]
+    row = [cell.value for cell in workbook["PO Items"][2]]
+    assert row[7] == "LBC857BLT1G"

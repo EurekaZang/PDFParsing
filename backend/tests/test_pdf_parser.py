@@ -23,6 +23,7 @@ def test_parse_first_sample_extracts_po_header_ship_to_and_line_item():
     assert item.item == "1"
     assert item.material == "W10165202"
     assert item.description == "TRANSISTOR PNP 100MA 45V HFE150 SOT23"
+    assert item.manufacturer_part_number == "LBC857BLT1G"
     assert item.uom == "EA"
     assert item.total_qty == "78,000"
     assert item.qty_recd == "0"
@@ -44,6 +45,7 @@ def test_parse_second_sample_extracts_po_header_and_line_item():
     item = result.line_items[0]
     assert item.material == "W10155978"
     assert item.description == "DIODE SM SIG 200MA 100V SOD123"
+    assert item.manufacturer_part_number == "L1N4148WT1G"
     assert item.total_qty == "81,000"
     assert item.due_date == "08/30/2026"
 
@@ -72,6 +74,27 @@ def test_parse_pdf_bytes_fails_cleanly_for_non_pdf_bytes():
     assert result.status == "failed"
     assert result.error
     assert result.line_items == []
+
+
+def test_parse_text_extracts_manufacturer_part_number_from_manufacturer_line():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 1234567890 / 01/02/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 DZ-I1PRO3-084 EA 5,000 0 0 0.323 1,615.00 07/26/2026",
+            "REG_3V3_LDK320ADU33R",
+            "Manufacturer LESHANRADI LR6302A33P REEL",
+        ]
+    )
+
+    result = _parse_text(text, "manufacturer.pdf")
+
+    assert result.status == "parsed"
+    assert result.warnings == []
+    assert len(result.line_items) == 1
+    assert result.line_items[0].material == "DZ-I1PRO3-084"
+    assert result.line_items[0].manufacturer_part_number == "LR6302A33P"
 
 
 def test_parse_text_warns_when_an_item_like_row_cannot_be_parsed():

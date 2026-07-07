@@ -9,6 +9,7 @@ export interface LineItem {
   item: string;
   material: string;
   description: string;
+  manufacturer_part_number: string;
   uom: string;
   total_qty: string;
   qty_recd: string;

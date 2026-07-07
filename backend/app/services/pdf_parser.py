@@ -141,10 +141,12 @@ def _extract_line_items(lines: list[str]) -> tuple[list[LineItem], list[str]]:
             continue
 
         description = _extract_description_after_row(lines, index + 1)
+        manufacturer_part_number = _extract_manufacturer_part_number_after_row(lines, index + 1)
         item = LineItem(
             item=match.group("item"),
             material=match.group("material"),
             description=description,
+            manufacturer_part_number=manufacturer_part_number,
             uom=match.group("uom"),
             total_qty=match.group("total_qty"),
             qty_recd=match.group("qty_recd"),
@@ -171,6 +173,23 @@ def _extract_description_after_row(lines: list[str], start_index: int) -> str:
         if stripped.startswith(DESCRIPTION_STOP_PREFIXES):
             return ""
         return re.sub(r"\s+", " ", stripped)
+    return ""
+
+
+def _extract_manufacturer_part_number_after_row(lines: list[str], start_index: int) -> str:
+    for line in lines[start_index : start_index + 12]:
+        stripped = re.sub(r"\s+", " ", line.strip())
+        if not stripped:
+            continue
+        if not stripped.startswith("Manufacturer"):
+            continue
+        tokens = stripped.split()
+        if tokens and tokens[-1].upper() == "REEL":
+            tokens = tokens[:-1]
+        for token in reversed(tokens[1:]):
+            if re.fullmatch(r"[A-Z][A-Z0-9_\-]{3,}", token):
+                return token
+        return ""
     return ""
 
 
