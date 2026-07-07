@@ -3,6 +3,7 @@ import { useState } from 'react';
 import './App.css';
 import { clearToken, getToken } from './auth';
 import { LoginPage } from './components/LoginPage';
+import { UploadPage } from './components/UploadPage';
 
 export default function App() {
   const [token, setTokenState] = useState<string | null>(() => getToken());
@@ -29,10 +30,7 @@ export default function App() {
           Sign out
         </button>
       </header>
-      <section className="panel">
-        <h2>Upload interface will be added in Task 8</h2>
-        <p>The login flow is connected. Continue with the upload and preview task.</p>
-      </section>
+      <UploadPage token={token} />
     </main>
   );
 }
