@@ -22,7 +22,9 @@ ITEM_PATTERN = re.compile(
     r"(?P<item_value>[\d,.]+)\s+"
     r"(?P<due_date>\d{2}/\d{2}/\d{4})\s*$"
 )
-ITEM_LIKE_PATTERN = re.compile(r"^\s*\d+\s+[A-Z][A-Z0-9\-]{3,}\b")
+# Line-item numbers are small (1–999). Require a material-like token so vendor
+# address fragments such as "518100 SHENZHEN-BAO'AN" are not treated as items.
+ITEM_LIKE_PATTERN = re.compile(r"^\s*\d{1,3}\s+[A-Z0-9][A-Z0-9\-]{3,}\b")
 
 DESCRIPTION_STOP_PREFIXES = (
     "Manufacturer",

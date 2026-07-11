@@ -151,3 +151,50 @@ def test_parse_text_warns_for_item_like_row_missing_uom_but_not_quantity_row():
     assert result.status == "warning"
     assert len(result.line_items) == 1
     assert result.warnings == ["1 material line item row could not be parsed"]
+
+
+def test_parse_text_ignores_postal_code_address_as_item_like_row():
+    """Vendor address lines like '518100 SHENZHEN-BAO'AN' must not raise warnings."""
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 4516327359 / 07/06/2026",
+            "Ship To:",
+            "  Jabil Circuit (Guangzhou) Limited",
+            "                 XIXIANG AVENUE,",
+            "                 518100 SHENZHEN-BAO'AN",
+            "                 China",
+            "                 518100 SHENZHEN-BAO'AN",
+            "1 TG-IC-000606 EA 12,000 0 0 1.12818 13,538.16 10/03/2026",
+            "IC REG BUCK ADJ 2A 8SOIC",
+            "Manufacturer SILICONTEC SCT9320STDR REEL",
+        ]
+    )
+
+    result = _parse_text(text, "address-false-positive.pdf")
+
+    assert result.status == "parsed"
+    assert result.warnings == []
+    assert len(result.line_items) == 1
+    assert result.line_items[0].material == "TG-IC-000606"
+
+
+def test_parse_text_counts_digit_leading_material_as_item_like():
+    """Materials starting with digits (e.g. 807W45002-LF) should still be item-like."""
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 4516339174 / 07/08/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 807W45002-LF EA 15,000 0 0 0.028 420.00 10/26/2026",
+            "TRANSISTOR, PNP, 40V, 200MA,SOT23,ROHS",
+            "Manufacturer LESHANRADI LMBT3906LT1G REEL",
+            "2 999W00001-LF EA 1,000 0 0 0.01",
+        ]
+    )
+
+    result = _parse_text(text, "digit-material.pdf")
+
+    assert result.status == "warning"
+    assert len(result.line_items) == 1
+    assert result.line_items[0].material == "807W45002-LF"
+    assert result.warnings == ["1 material line item row could not be parsed"]
