@@ -1,19 +1,31 @@
-import type { ParseResult } from '../types';
+import type { LineItem, ParseResult } from '../types';
 
 interface ResultTableProps {
   results: ParseResult[];
 }
 
+interface ResultRow {
+  result: ParseResult;
+  item: LineItem | null;
+}
+
 export function ResultTable({ results }: ResultTableProps) {
-  const rows = results.flatMap((result) =>
-    result.line_items.map((item) => ({ result, item }))
-  );
+  const rows: ResultRow[] = [];
+  for (const result of results) {
+    if (!result.line_items.length) {
+      rows.push({ result, item: null });
+      continue;
+    }
+    for (const item of result.line_items) {
+      rows.push({ result, item });
+    }
+  }
 
   if (!results.length) {
     return (
       <div className="empty-state">
-        <strong>No parsed files yet.</strong>
-        <span>Select PDFs above, then parse them to preview material lines here.</span>
+        <strong>还没有解析结果</strong>
+        <span>选择 PDF 后点击「解析 PDF」，物料行会显示在这里。</span>
       </div>
     );
   }
@@ -23,56 +35,54 @@ export function ResultTable({ results }: ResultTableProps) {
       <table>
         <thead>
           <tr>
-            <th>Source file</th>
-            <th>PO number</th>
-            <th>PO date</th>
-            <th>Ship to</th>
-            <th>Item</th>
-            <th>Material</th>
-            <th>Description</th>
-            <th>Manufacturer part number</th>
-            <th>U/M</th>
-            <th>Total qty</th>
-            <th>Qty recd</th>
-            <th>Qty retd</th>
-            <th>Unit price</th>
-            <th>Item value</th>
-            <th>Due date</th>
-            <th>Status / warnings</th>
+            <th>状态</th>
+            <th>文件</th>
+            <th>PO</th>
+            <th>日期</th>
+            <th>物料</th>
+            <th>描述</th>
+            <th>厂牌料号</th>
+            <th>数量</th>
+            <th>单价</th>
+            <th>交期</th>
+            <th>收货地址</th>
+            <th>备注</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ result, item }) => (
-            <tr key={`${result.source_file}-${item.item}-${item.material}`}>
-              <td>{result.source_file}</td>
-              <td>{result.po_number}</td>
-              <td>{result.po_date}</td>
-              <td className="multiline">{result.ship_to}</td>
-              <td>{item.item}</td>
-              <td>{item.material}</td>
-              <td>{item.description}</td>
-              <td>{item.manufacturer_part_number}</td>
-              <td>{item.uom}</td>
-              <td>{item.total_qty}</td>
-              <td>{item.qty_recd}</td>
-              <td>{item.qty_retd}</td>
-              <td>{item.unit_price}</td>
-              <td>{item.item_value}</td>
-              <td>{item.due_date}</td>
-              <td>
-                <span className={`status-pill ${result.status}`}>{result.status}</span>
-                {[...result.warnings, ...item.warnings].filter(Boolean).join('; ')}
-              </td>
-            </tr>
-          ))}
+          {rows.map(({ result, item }, index) => {
+            const warnings = [...result.warnings, ...(item?.warnings ?? [])].filter(Boolean);
+            const key = item
+              ? `${result.source_file}-${item.item}-${item.material}`
+              : `${result.source_file}-empty-${index}`;
+
+            return (
+              <tr key={key}>
+                <td>
+                  <span className={`status-pill ${result.status}`}>{result.status}</span>
+                </td>
+                <td className="cell-file" title={result.source_file}>
+                  {result.source_file}
+                </td>
+                <td className="cell-mono">{result.po_number || '—'}</td>
+                <td className="cell-mono">{result.po_date || '—'}</td>
+                <td className="cell-mono">{item?.material ?? '—'}</td>
+                <td className="cell-desc">{item?.description || '—'}</td>
+                <td className="cell-mono">{item?.manufacturer_part_number || '—'}</td>
+                <td className="cell-num">{item?.total_qty ?? '—'}</td>
+                <td className="cell-num">{item?.unit_price ?? '—'}</td>
+                <td className="cell-mono">{item?.due_date ?? '—'}</td>
+                <td className="cell-ship" title={result.ship_to}>
+                  {result.ship_to || '—'}
+                </td>
+                <td className="cell-warn">
+                  {result.error || warnings.join('; ') || '—'}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
-      {!rows.length && (
-        <div className="empty-state inline">
-          <strong>Files parsed, but no material rows were found.</strong>
-          <span>Check the source PDFs or warnings before exporting.</span>
-        </div>
-      )}
     </div>
   );
 }
