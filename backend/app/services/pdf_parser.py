@@ -22,6 +22,16 @@ ITEM_PATTERN = re.compile(
     r"(?P<item_value>[\d,.]+)\s+"
     r"(?P<due_date>\d{2}/\d{2}/\d{4})\s*$"
 )
+ITEM_WITH_VENDOR_CONFIRMATION_PATTERN = re.compile(
+    r"^\s*(?P<item>\d+)\s+"
+    r"(?P<material>[A-Z0-9][A-Z0-9\-]*)\s+"
+    r"(?P<uom>[A-Z]{1,5})\s+"
+    r"(?P<total_qty>[\d,]+)\s+"
+    r"(?P<qty_recd>[\d,]+)\s+"
+    r"(?P<qty_retd>[\d,]+)\s+"
+    r"(?P<unit_price>[\d,.]+)\s*$"
+)
+VENDOR_CONFIRMATION_DATE_PATTERN = re.compile(r"^\s*\d+\s+[\d,]+\s+(?P<due_date>\d{2}/\d{2}/\d{4})\b")
 # Line-item numbers are small (1–999). Require a material-like token so vendor
 # address fragments such as "518100 SHENZHEN-BAO'AN" are not treated as items.
 ITEM_LIKE_PATTERN = re.compile(r"^\s*\d{1,3}\s+[A-Z0-9][A-Z0-9\-]{3,}\b")
@@ -138,24 +148,34 @@ def _extract_line_items(lines: list[str]) -> tuple[list[LineItem], list[str]]:
         if ITEM_LIKE_PATTERN.match(line):
             item_like_rows += 1
 
-        match = ITEM_PATTERN.match(line)
-        if not match:
-            continue
+        row_match = ITEM_PATTERN.match(line)
+        item_value = ""
+        due_date = ""
+        if row_match:
+            item_value = row_match.group("item_value")
+            due_date = row_match.group("due_date")
+        else:
+            row_match = ITEM_WITH_VENDOR_CONFIRMATION_PATTERN.match(line)
+            if not row_match:
+                continue
+            due_date = _extract_vendor_confirmation_due_date(lines, index + 1)
+            if not due_date:
+                continue
 
         description = _extract_description_after_row(lines, index + 1)
         manufacturer_part_number = _extract_manufacturer_part_number_after_row(lines, index + 1)
         item = LineItem(
-            item=match.group("item"),
-            material=match.group("material"),
+            item=row_match.group("item"),
+            material=row_match.group("material"),
             description=description,
             manufacturer_part_number=manufacturer_part_number,
-            uom=match.group("uom"),
-            total_qty=match.group("total_qty"),
-            qty_recd=match.group("qty_recd"),
-            qty_retd=match.group("qty_retd"),
-            unit_price=match.group("unit_price"),
-            item_value=match.group("item_value"),
-            due_date=match.group("due_date"),
+            uom=row_match.group("uom"),
+            total_qty=row_match.group("total_qty"),
+            qty_recd=row_match.group("qty_recd"),
+            qty_retd=row_match.group("qty_retd"),
+            unit_price=row_match.group("unit_price"),
+            item_value=item_value,
+            due_date=due_date,
         )
         if not description:
             item.warnings.append("Description not found")
@@ -192,6 +212,14 @@ def _extract_manufacturer_part_number_after_row(lines: list[str], start_index: i
             if re.fullmatch(r"[A-Z][A-Z0-9_\-]{3,}", token):
                 return token
         return ""
+    return ""
+
+
+def _extract_vendor_confirmation_due_date(lines: list[str], start_index: int) -> str:
+    for line in lines[start_index : start_index + 12]:
+        match = VENDOR_CONFIRMATION_DATE_PATTERN.match(line)
+        if match:
+            return match.group("due_date")
     return ""
 
 

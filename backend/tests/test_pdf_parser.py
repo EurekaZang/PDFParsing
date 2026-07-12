@@ -97,6 +97,35 @@ def test_parse_text_extracts_manufacturer_part_number_from_manufacturer_line():
     assert result.line_items[0].manufacturer_part_number == "LR6302A33P"
 
 
+def test_parse_text_extracts_keurig_item_due_date_from_vendor_confirmation():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 4515743459 / 04/06/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 ECMP001966 EA 21,000 0 0 0.0062",
+            "TRANS PREBIAS NPN 50V 100mA SOT23",
+            "Manufacturer LESHANRADI LMUN2211LT1G REEL",
+            "Material Group : KEURIG              Vendor Confirmation",
+            "Line    Quantity Delivery Date ( ETA Shipping Address )",
+            "L/T : 84",
+            "2       21,000        08/28/2026",
+        ]
+    )
+
+    result = _parse_text(text, "keurig.pdf")
+
+    assert result.status == "parsed"
+    assert result.warnings == []
+    assert len(result.line_items) == 1
+    item = result.line_items[0]
+    assert item.material == "ECMP001966"
+    assert item.description == "TRANS PREBIAS NPN 50V 100mA SOT23"
+    assert item.manufacturer_part_number == "LMUN2211LT1G"
+    assert item.item_value == ""
+    assert item.due_date == "08/28/2026"
+
+
 def test_parse_text_warns_when_an_item_like_row_cannot_be_parsed():
     text = "\n".join(
         [
