@@ -97,6 +97,48 @@ def test_parse_text_extracts_manufacturer_part_number_from_manufacturer_line():
     assert result.line_items[0].manufacturer_part_number == "LR6302A33P"
 
 
+def test_parse_text_extracts_manufacturer_part_number_containing_slash():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 1234567890 / 01/02/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 833W70038-LF EA 14,040 0 0 0.121 1,698.84 10/30/2026",
+            "IC REG BUCK 3A TSOT23-6",
+            "Manufacturer SGMICRO SGM65231XTS20G/TR REEL",
+        ]
+    )
+
+    result = _parse_text(text, "manufacturer-slash.pdf")
+
+    assert result.status == "parsed"
+    assert result.warnings == []
+    assert len(result.line_items) == 1
+    assert result.line_items[0].material == "833W70038-LF"
+    assert result.line_items[0].manufacturer_part_number == "SGM65231XTS20G/TR"
+
+
+def test_parse_text_extracts_digit_leading_manufacturer_part_number_containing_slash():
+    text = "\n".join(
+        [
+            "PO number/date (MM/DD/YYYY) : 1234567890 / 01/02/2026",
+            "Ship To:",
+            "  Example Address",
+            "1 833W23707-LF EA 20,000 0 0 0.021 420.00 10/30/2026",
+            "IC LOGIC D-TYPE FLIP-FLOP VSSOP8",
+            "Manufacturer SGMICRO 74AUP1G74XVS8G/TR REEL",
+        ]
+    )
+
+    result = _parse_text(text, "manufacturer-digit-slash.pdf")
+
+    assert result.status == "parsed"
+    assert result.warnings == []
+    assert len(result.line_items) == 1
+    assert result.line_items[0].material == "833W23707-LF"
+    assert result.line_items[0].manufacturer_part_number == "74AUP1G74XVS8G/TR"
+
+
 def test_parse_text_extracts_keurig_item_due_date_from_vendor_confirmation():
     text = "\n".join(
         [

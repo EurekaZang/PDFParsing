@@ -32,6 +32,7 @@ ITEM_WITH_VENDOR_CONFIRMATION_PATTERN = re.compile(
     r"(?P<unit_price>[\d,.]+)\s*$"
 )
 VENDOR_CONFIRMATION_DATE_PATTERN = re.compile(r"^\s*\d+\s+[\d,]+\s+(?P<due_date>\d{2}/\d{2}/\d{4})\b")
+MANUFACTURER_PART_NUMBER_PATTERN = re.compile(r"(?=.*\d)[A-Z0-9][A-Z0-9_/\-]{3,}")
 # Line-item numbers are small (1–999). Require a material-like token so vendor
 # address fragments such as "518100 SHENZHEN-BAO'AN" are not treated as items.
 ITEM_LIKE_PATTERN = re.compile(r"^\s*\d{1,3}\s+[A-Z0-9][A-Z0-9\-]{3,}\b")
@@ -209,7 +210,7 @@ def _extract_manufacturer_part_number_after_row(lines: list[str], start_index: i
         if tokens and tokens[-1].upper() == "REEL":
             tokens = tokens[:-1]
         for token in reversed(tokens[1:]):
-            if re.fullmatch(r"[A-Z][A-Z0-9_\-]{3,}", token):
+            if MANUFACTURER_PART_NUMBER_PATTERN.fullmatch(token):
                 return token
         return ""
     return ""
